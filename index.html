@@ -2,11 +2,50 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Flute Flash Cards</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Recorder Rush</title>
+
+<!-- ── PWA / Home Screen App meta tags ── -->
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Recorder Rush">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#F5C800">
+
+<!-- App icon — inline SVG data URI so no extra files needed -->
+<!-- 180×180 touch icon (used by iOS for home screen) -->
+<link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 180 180'%3E%3Crect width='180' height='180' rx='40' fill='%23F5C800'/%3E%3Crect x='10' y='10' width='160' height='160' rx='32' fill='none' stroke='%231A1A1A' stroke-width='6'/%3E%3Ctext x='90' y='115' text-anchor='middle' font-family='Arial Black,sans-serif' font-size='90' font-weight='900' fill='%23E8232A'%3E♪%3C/text%3E%3C/svg%3E">
+
+<!-- Web App Manifest (inline via JS blob — no separate file needed) -->
+<script>
+(function(){
+  const manifest = {
+    name: 'Recorder Rush',
+    short_name: 'Recorder Rush',
+    description: 'Sight reading practice game for recorder',
+    start_url: './',
+    display: 'standalone',
+    orientation: 'portrait',
+    background_color: '#F5C800',
+    theme_color: '#F5C800',
+    icons: [
+      {
+        src: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'%3E%3Crect width='192' height='192' rx='40' fill='%23F5C800'/%3E%3Ctext x='96' y='130' text-anchor='middle' font-family='Arial Black' font-size='110' fill='%23E8232A'%3E♪%3C/text%3E%3C/svg%3E",
+        sizes: '192x192', type: 'image/svg+xml'
+      }
+    ]
+  };
+  const blob = new Blob([JSON.stringify(manifest)], {type:'application/manifest+json'});
+  const url  = URL.createObjectURL(blob);
+  const link = document.createElement('link');
+  link.rel   = 'manifest';
+  link.href  = url;
+  document.head.appendChild(link);
+})();
+</script>
+
 <link href="https://fonts.googleapis.com/css2?family=Chewy&family=Nunito:wght@700;900&display=swap" rel="stylesheet">
 <style>
-
 :root {
   --red:    #E8232A;
   --yellow: #F5C800;
@@ -24,308 +63,374 @@
 
 body {
   font-family: 'Nunito', sans-serif;
+  font-weight: 700;
   background-color: var(--yellow);
   background-image:
     repeating-linear-gradient(0deg, transparent, transparent 39px, rgba(0,0,0,.06) 39px, rgba(0,0,0,.06) 40px),
     repeating-linear-gradient(90deg, transparent, transparent 39px, rgba(0,0,0,.06) 39px, rgba(0,0,0,.06) 40px);
   min-height: 100vh;
+  min-height: -webkit-fill-available;
   display: flex; flex-direction: column; align-items: center;
-  padding: 18px 14px 60px;
+  padding: max(18px, env(safe-area-inset-top)) 14px max(0px, env(safe-area-inset-bottom));
+  padding-left:  max(14px, env(safe-area-inset-left));
+  padding-right: max(14px, env(safe-area-inset-right));
   color: var(--black);
 }
 
-/* ── Background music notes ── */
 .bg-note {
-  position: fixed; font-family:'Times New Roman',serif;
-  color: rgba(0,0,0,.055); pointer-events:none; user-select:none; z-index:0;
+  position: fixed; font-family: 'Times New Roman', serif;
+  color: rgba(0,0,0,.055); pointer-events: none; user-select: none; z-index: 0;
 }
 
 /* ── Header ── */
-.site-header { text-align:center; margin-bottom:14px; position:relative; z-index:1; }
+.site-header { text-align: center; margin-bottom: 12px; position: relative; z-index: 1; }
 .site-title {
-  font-family:'Chewy', sans-serif;
-  font-size: clamp(1.9rem,6vw,2.8rem);
+  font-family: 'Chewy', sans-serif;
+  font-size: clamp(2rem, 7vw, 3rem);
   color: var(--red);
-  
-  line-height:1; margin-bottom:3px;
+  line-height: 1; margin-bottom: 2px;
 }
 .site-subtitle {
-  font-family:'Chewy', sans-serif; font-size:1rem;
-  color:var(--blue); letter-spacing:3px; text-transform:uppercase;
+  font-family: 'Chewy', sans-serif; font-size: 1rem;
+  color: var(--blue); letter-spacing: 3px; text-transform: uppercase;
 }
 
 /* ── HTTPS Warning ── */
 #https-warning {
-  width:min(440px,96vw); background:var(--white);
-  border:3px solid var(--black); border-radius:4px;
-  box-shadow:var(--shadow-lg); padding:14px 16px;
-  margin-bottom:16px; font-size:.82rem; line-height:1.6; position:relative; z-index:1;
+  width: min(440px,96vw); background: var(--white);
+  border: 3px solid var(--black); border-radius: 4px;
+  box-shadow: var(--shadow-lg); padding: 14px 16px 12px;
+  margin-bottom: 14px; font-size: .82rem; line-height: 1.6;
+  position: relative; z-index: 1;
 }
 #https-warning::before {
-  content:'HEADS UP!'; font-family:'Chewy', sans-serif; font-size:.72rem;
-  background:var(--orange); color:var(--white); border:2px solid var(--black);
-  padding:2px 10px; position:absolute; top:-13px; left:12px; letter-spacing:1px;
+  content: 'HEADS UP!'; font-family: 'Chewy', sans-serif; font-size: .8rem;
+  background: var(--orange); color: var(--white); border: 2px solid var(--black);
+  padding: 2px 10px; position: absolute; top: -13px; left: 12px; letter-spacing: 1px;
 }
-#https-warning strong { font-family:'Chewy', sans-serif; font-size:.92rem; display:block; margin-bottom:4px; }
-#https-warning code { background:var(--yellow); border:1.5px solid var(--black); border-radius:3px; padding:0 5px; font-size:.76rem; }
-#https-warning ol { padding-left:18px; margin-top:5px; }
-#https-warning li { margin-bottom:2px; }
+#https-warning strong { font-family: 'Chewy', sans-serif; font-size: 1rem; display: block; margin-bottom: 4px; }
+#https-warning code { background: var(--yellow); border: 1.5px solid var(--black); border-radius: 3px; padding: 0 5px; font-size: .76rem; }
+#https-warning ol { padding-left: 18px; margin-top: 5px; }
+#https-warning li { margin-bottom: 2px; }
 
 /* ── Difficulty Tabs ── */
 .diff-tabs {
-  display:flex; gap:0; margin-bottom:6px;
-  border:3px solid var(--black); border-radius:4px;
-  overflow:hidden; box-shadow:var(--shadow); position:relative; z-index:1;
+  display: flex; gap: 0; margin-bottom: 6px;
+  border: 3px solid var(--black); border-radius: 4px;
+  overflow: hidden; box-shadow: var(--shadow); position: relative; z-index: 1;
 }
 .diff-tab {
-  font-family:'Chewy', sans-serif; font-size:.88rem; letter-spacing:.5px;
-  padding:8px 14px; border:none; border-right:3px solid var(--black);
-  cursor:pointer; background:var(--white); color:var(--black);
-  transition:background .15s; flex:1;
+  font-family: 'Chewy', sans-serif; font-size: .95rem; letter-spacing: .5px;
+  padding: 8px 14px; border: none; border-right: 3px solid var(--black);
+  cursor: pointer; background: var(--white); color: var(--black);
+  transition: background .15s; flex: 1;
 }
-.diff-tab:last-child { border-right:none; }
-.diff-tab:hover { background:var(--cream); }
-.diff-tab.active { background:var(--red); color:var(--white);  }
+.diff-tab:last-child { border-right: none; }
+.diff-tab:hover { background: var(--cream); }
+.diff-tab.active { background: var(--red); color: var(--white); }
 
 .level-desc {
-  font-family:'Nunito', sans-serif; font-size:.76rem; color:var(--black);
-  margin-bottom:10px; background:var(--white); border:2px solid var(--black);
-  border-radius:3px; padding:2px 12px; box-shadow:2px 2px 0 var(--black);
-  position:relative; z-index:1;
+  font-family: 'Nunito', sans-serif; font-weight: 700; font-size: .76rem; color: var(--black);
+  margin-bottom: 10px; background: var(--white); border: 2px solid var(--black);
+  border-radius: 3px; padding: 2px 12px; box-shadow: 2px 2px 0 var(--black);
+  position: relative; z-index: 1; text-align: center;
 }
 
-/* ════════════════════════════════════════
+/* ════════════════════════════
    START SCREEN
-   ════════════════════════════════════════ */
+   ════════════════════════════ */
 #start-screen {
-  display:flex; flex-direction:column; align-items:center; gap:14px;
-  position:relative; z-index:1; width:min(420px,96vw);
+  display: flex; flex-direction: column; align-items: center; gap: 12px;
+  position: relative; z-index: 1; width: min(420px,96vw);
 }
 
 .start-card {
-  background:var(--white); border:4px solid var(--black);
-  border-radius:6px; box-shadow:var(--shadow-lg);
-  padding:24px 22px; text-align:center; width:100%;
+  background: var(--white); border: 4px solid var(--black);
+  border-radius: 6px; box-shadow: var(--shadow-lg);
+  padding: 22px 20px; text-align: center; width: 100%;
 }
 .start-card h2 {
-  font-family:'Chewy', sans-serif; font-size:1.7rem;
-  color:var(--blue); margin-bottom:10px;
+  font-family: 'Chewy', sans-serif; font-size: 1.7rem;
+  color: var(--blue); margin-bottom: 8px;
 }
-.start-card p { font-size:.92rem; line-height:1.6; color:var(--black); margin-bottom:6px; }
+.start-card p { font-size: .9rem; line-height: 1.6; margin-bottom: 6px; }
 .start-card .big-num {
-  font-family:'Chewy', sans-serif; font-size:3.5rem;
-  color:var(--red); 
-  display:block; line-height:1;
+  font-family: 'Chewy', sans-serif; font-size: 3.5rem;
+  color: var(--red); display: block; line-height: 1;
 }
-.start-card .sub { font-family:'Chewy', sans-serif; font-size:1rem; letter-spacing:1px; color:var(--black); }
+.start-card .sub { font-family: 'Chewy', sans-serif; font-size: 1rem; letter-spacing: 1px; color: var(--black); }
+
+/* ── Note Selector ── */
+.note-selector-card {
+  background: var(--white); border: 4px solid var(--black);
+  border-radius: 6px; box-shadow: var(--shadow-lg);
+  padding: 16px 20px; width: 100%;
+}
+.note-selector-card h3 {
+  font-family: 'Chewy', sans-serif; font-size: 1.2rem;
+  color: var(--black); margin-bottom: 4px;
+}
+.note-selector-card .selector-sub {
+  font-size: .75rem; color: #666; margin-bottom: 12px;
+}
+.note-toggle-row {
+  display: flex; flex-wrap: wrap; gap: 8px; justify-content: center;
+}
+.note-toggle {
+  font-family: 'Chewy', sans-serif; font-size: 1rem;
+  padding: 7px 16px; border: 3px solid var(--black); border-radius: 4px;
+  cursor: pointer; background: var(--white); color: var(--black);
+  box-shadow: 3px 3px 0 var(--black); transition: transform .1s, box-shadow .1s;
+  user-select: none;
+}
+.note-toggle:active { transform: translate(2px,2px); box-shadow: 1px 1px 0 var(--black); }
+.note-toggle.selected { background: var(--blue); color: var(--white); }
+.note-toggle.disabled { opacity: .45; cursor: not-allowed; }
+
+.points-preview {
+  margin-top: 10px; font-size: .78rem; color: #555;
+  font-family: 'Nunito', sans-serif; font-weight: 700;
+  background: var(--cream); border: 2px solid var(--black);
+  border-radius: 3px; padding: 4px 10px;
+  display: inline-block;
+}
 
 .best-score-display {
-  font-family:'Chewy', sans-serif; font-size:.9rem; color:#555;
-  background:var(--cream); border:2px solid var(--black);
-  border-radius:3px; padding:4px 14px; margin-top:4px;
-  box-shadow:2px 2px 0 var(--black);
+  font-family: 'Chewy', sans-serif; font-size: .95rem; color: #555;
+  background: var(--cream); border: 2px solid var(--black);
+  border-radius: 3px; padding: 4px 14px;
+  box-shadow: 2px 2px 0 var(--black);
 }
 
-/* ════════════════════════════════════════
+/* ════════════════════════════
    GAME SCREEN
-   ════════════════════════════════════════ */
-#game-screen { display:none; flex-direction:column; align-items:center; width:100%; position:relative; z-index:1; }
+   ════════════════════════════ */
+#game-screen { display: none; flex-direction: column; align-items: center; width: 100%; position: relative; z-index: 1; }
 
-/* ── Timer + Score bar ── */
 .hud {
-  display:flex; align-items:center; justify-content:space-between;
-  width:min(420px,96vw); margin-bottom:12px; gap:10px;
+  display: flex; align-items: center; justify-content: space-between;
+  width: min(420px,96vw); margin-bottom: 10px; gap: 10px;
 }
-
 .timer-wrap {
-  background:var(--white); border:3px solid var(--black);
-  border-radius:4px; box-shadow:var(--shadow); padding:6px 14px;
-  text-align:center; min-width:90px;
+  background: var(--white); border: 3px solid var(--black);
+  border-radius: 4px; box-shadow: var(--shadow); padding: 5px 12px;
+  text-align: center; min-width: 80px;
 }
-.timer-label { font-family:'Chewy', sans-serif; font-size:.7rem; letter-spacing:1px; text-transform:uppercase; color:#666; }
+.timer-label { font-family: 'Chewy', sans-serif; font-size: .65rem; letter-spacing: 1px; text-transform: uppercase; color: #666; }
 .timer-val {
-  font-family:'Chewy', sans-serif; font-size:2.2rem; line-height:1;
-  color:var(--black); transition:color .3s;
+  font-family: 'Chewy', sans-serif; font-size: 2.2rem; line-height: 1;
+  color: var(--black); transition: color .3s; min-width: 3ch; display: inline-block;
 }
-.timer-val.urgent { color:var(--red); animation:tick-shake .4s ease infinite alternate; }
+.timer-val.urgent { color: var(--red); animation: tick-shake .4s ease infinite alternate; }
 @keyframes tick-shake { from{transform:scale(1)} to{transform:scale(1.08)} }
 
 .score-wrap {
-  background:var(--blue); border:3px solid var(--black);
-  border-radius:4px; box-shadow:var(--shadow); padding:6px 14px;
-  text-align:center; min-width:90px;
+  background: var(--blue); border: 3px solid var(--black);
+  border-radius: 4px; box-shadow: var(--shadow); padding: 5px 12px;
+  text-align: center; min-width: 80px;
 }
-.score-label { font-family:'Chewy', sans-serif; font-size:.7rem; letter-spacing:1px; text-transform:uppercase; color:rgba(255,255,255,.8); }
-.score-val {
-  font-family:'Chewy', sans-serif; font-size:2.2rem; line-height:1; color:var(--white);
-}
-.score-val.bump { animation:score-bump .25s ease; }
+.score-label { font-family: 'Chewy', sans-serif; font-size: .65rem; letter-spacing: 1px; text-transform: uppercase; color: rgba(255,255,255,.8); }
+.score-val { font-family: 'Chewy', sans-serif; font-size: 2.2rem; line-height: 1; color: var(--white); }
+.score-val.bump { animation: score-bump .25s ease; }
 @keyframes score-bump { 0%{transform:scale(1)} 50%{transform:scale(1.35)} 100%{transform:scale(1)} }
 
-/* Timer progress bar */
+.pts-badge {
+  background: var(--orange); border: 3px solid var(--black);
+  border-radius: 4px; box-shadow: var(--shadow); padding: 5px 12px;
+  text-align: center; min-width: 60px;
+}
+.pts-label { font-family: 'Chewy', sans-serif; font-size: .65rem; letter-spacing: 1px; text-transform: uppercase; color: rgba(255,255,255,.8); }
+.pts-val { font-family: 'Chewy', sans-serif; font-size: 1.5rem; line-height: 1; color: var(--white); }
+
 .timer-bar-wrap {
-  width:min(420px,96vw); height:10px;
-  background:var(--white); border:3px solid var(--black);
-  border-radius:4px; margin-bottom:12px; overflow:hidden;
-  box-shadow:var(--shadow);
+  width: min(420px,96vw); height: 10px;
+  background: var(--white); border: 3px solid var(--black);
+  border-radius: 4px; margin-bottom: 10px; overflow: hidden;
+  box-shadow: var(--shadow);
 }
 .timer-bar {
-  height:100%; width:100%;
-  background:var(--green);
-  transform-origin:left;
-  transition:width .25s linear, background .5s;
+  height: 100%; width: 100%;
+  background: var(--green); transform-origin: left;
+  transition: width .5s linear, background .5s;
 }
-.timer-bar.low { background:var(--red); }
+.timer-bar.low { background: var(--red); }
 
 /* ── Card ── */
-.card-wrap { width:min(420px,96vw); margin-bottom:14px; }
+.card-wrap { width: min(420px,96vw); margin-bottom: 12px; }
 .card {
-  background:var(--white); border:4px solid var(--black);
-  border-radius:6px; box-shadow:var(--shadow-lg);
-  padding:20px 20px 16px; text-align:center;
-  transition:box-shadow .15s, border-color .15s;
-  position:relative;
+  background: var(--white); border: 4px solid var(--black);
+  border-radius: 6px; box-shadow: var(--shadow-lg);
+  padding: 18px 18px 14px; text-align: center;
+  transition: box-shadow .15s, border-color .15s; position: relative;
 }
 .card::before, .card::after {
-  content:''; position:absolute;
-  width:10px; height:10px; background:var(--yellow);
-  border:2px solid var(--black); border-radius:50%;
+  content: ''; position: absolute;
+  width: 10px; height: 10px; background: var(--yellow);
+  border: 2px solid var(--black); border-radius: 50%;
 }
-.card::before { top:7px; left:7px; }
-.card::after  { top:7px; right:7px; }
+.card::before { top: 7px; left: 7px; }
+.card::after  { top: 7px; right: 7px; }
 
-.card.flash-correct {
-  border-color:var(--green); box-shadow:6px 6px 0 var(--green);
-  animation:card-pop .3s ease;
-}
-.card.flash-wrong {
-  border-color:var(--red); box-shadow:6px 6px 0 var(--red);
-  animation:card-shake .3s ease;
-}
+.card.flash-correct { border-color: var(--green); box-shadow: 6px 6px 0 var(--green); animation: card-pop .3s ease; }
+.card.flash-wrong   { border-color: var(--red);   box-shadow: 6px 6px 0 var(--red);   animation: card-shake .3s ease; }
 @keyframes card-pop   { 0%{transform:scale(1)} 40%{transform:scale(1.04) rotate(-1deg)} 70%{transform:scale(.98) rotate(1deg)} 100%{transform:scale(1) rotate(0)} }
 @keyframes card-shake { 0%{transform:translateX(0)} 25%{transform:translateX(-6px)} 75%{transform:translateX(6px)} 100%{transform:translateX(0)} }
 
 .note-name {
-  font-family:'Chewy', sans-serif; font-size:5.5rem; line-height:1;
-  color:var(--blue);
-  
-  margin-bottom:6px; letter-spacing:-1px;
+  font-family: 'Chewy', sans-serif; font-size: 5rem; line-height: 1;
+  color: var(--blue); margin-bottom: 4px;
 }
 
 /* Staff */
 .staff-wrap {
-  margin:0 auto 8px; width:100%; max-width:340px;
-  background:var(--cream); border:3px solid var(--black);
-  border-radius:4px; padding:4px 8px;
+  margin: 0 auto 6px; width: 100%; max-width: 340px;
+  background: var(--cream); border: 3px solid var(--black);
+  border-radius: 4px; padding: 4px 8px;
 }
-.staff-wrap svg { display:block; width:100%; height:auto; overflow:visible; }
+.staff-wrap svg { display: block; width: 100%; height: auto; overflow: visible; }
 
-/* Finger chart */
-.finger-chart { display:flex; align-items:center; justify-content:center; gap:5px; margin-top:12px; }
-.hole {
-  width:28px; height:28px; border-radius:50%;
-  border:3px solid var(--black); background:var(--white);
-  box-shadow:2px 2px 0 var(--black);
+/* ── Finger chart — vertical recorder diagram ── */
+.finger-area { margin-top: 10px; display: flex; flex-direction: column; align-items: center; gap: 6px; }
+
+/* Recorder diagram: thumb dot LEFT of vertical column */
+.recorder-diagram {
+  display: flex; flex-direction: row; align-items: flex-start;
+  justify-content: center; gap: 10px;
 }
-.hole.filled { background:var(--black); }
-.gap-div { width:12px; }
-.hint-text { margin-top:8px; font-family:'Chewy', sans-serif; font-size:.88rem; color:var(--blue); }
+
+/* Thumb dot — sits top-left, aligned with top of column */
+.thumb-dot {
+  width: 20px; height: 20px; border-radius: 50%;
+  border: 3px solid var(--black); background: var(--white);
+  margin-top: 4px; flex-shrink: 0;
+}
+.thumb-dot.filled { background: var(--black); }
+
+/* Vertical column = the recorder body */
+.hole-column {
+  display: flex; flex-direction: column;
+  border: 3px solid var(--black); border-radius: 8px;
+  padding: 6px 10px; gap: 5px;
+  background: var(--white);
+}
+
+/* Gap between LH and RH groups inside the column */
+.hole-gap { height: 8px; }
+
+.hole {
+  width: 22px; height: 22px; border-radius: 50%;
+  border: 3px solid var(--black); background: var(--white);
+}
+.hole.filled { background: var(--black); }
+
+.hint-text { font-family: 'Chewy', sans-serif; font-size: .9rem; color: var(--blue); }
+
+/* ── Hold progress bar (inside card) ── */
+.hold-bar-wrap {
+  margin-top: 10px; height: 8px;
+  background: #e8e8e8; border: 2px solid var(--black);
+  border-radius: 4px; overflow: hidden;
+}
+.hold-bar {
+  height: 100%; width: 0%;
+  background: var(--green); border-radius: 4px;
+  transition: width .05s linear;
+}
 
 /* ── Mic status ── */
 .mic-status {
-  width:min(420px,96vw); margin-bottom:10px;
-  background:var(--white); border:3px solid var(--black);
-  border-radius:4px; box-shadow:var(--shadow);
-  padding:8px 16px;
-  display:flex; align-items:center; gap:12px;
+  width: min(420px,96vw); margin-bottom: 8px;
+  background: var(--white); border: 3px solid var(--black);
+  border-radius: 4px; box-shadow: var(--shadow);
+  padding: 7px 14px;
+  display: flex; align-items: center; gap: 10px;
 }
 .mic-dot {
-  width:14px; height:14px; border-radius:50%;
-  background:#ccc; border:2px solid var(--black);
-  flex-shrink:0; transition:background .2s;
+  width: 13px; height: 13px; border-radius: 50%;
+  background: #ccc; border: 2px solid var(--black);
+  flex-shrink: 0; transition: background .2s;
 }
-.mic-dot.listening { background:var(--green); animation:mic-pulse .8s ease infinite alternate; }
-.mic-dot.heard     { background:var(--yellow); }
-.mic-dot.correct   { background:var(--green); }
-.mic-dot.wrong     { background:var(--red); }
-.mic-dot.blocked   { background:#ccc; }
+.mic-dot.listening { background: var(--green); animation: mic-pulse .8s ease infinite alternate; }
+.mic-dot.heard     { background: var(--yellow); }
+.mic-dot.correct   { background: var(--green); }
+.mic-dot.wrong     { background: var(--red); }
 @keyframes mic-pulse { from{opacity:1} to{opacity:.4} }
 
-.mic-text {
-  font-family:'Chewy', sans-serif; font-size:.92rem; color:var(--black); letter-spacing:.3px;
-}
-.mic-text .detected { font-family:'Chewy', sans-serif; font-size:1.1rem; }
-.mic-text .detected.correct { color:var(--green); }
-.mic-text .detected.wrong   { color:var(--red); }
+.mic-text { font-family: 'Chewy', sans-serif; font-size: .95rem; color: var(--black); letter-spacing: .3px; }
+.mic-text .detected { font-size: 1.05rem; }
+.mic-text .detected.correct { color: var(--green); }
+.mic-text .detected.wrong   { color: var(--red); }
 
-/* ── Result flash overlay ── */
+/* ── Result flash ── */
 .result-flash {
-  position:fixed; inset:0; z-index:50;
-  display:flex; align-items:center; justify-content:center;
-  pointer-events:none; opacity:0;
-  transition:opacity .1s;
+  position: fixed; inset: 0; z-index: 50;
+  display: flex; align-items: center; justify-content: center;
+  pointer-events: none; opacity: 0; transition: opacity .1s;
 }
-.result-flash.show { opacity:1; }
+.result-flash.show { opacity: 1; }
 .result-flash-inner {
-  font-family:'Chewy', sans-serif; font-size:5rem; line-height:1;
-  
-  animation:flash-pop .35s ease;
+  font-family: 'Chewy', sans-serif; font-size: 5rem; line-height: 1;
+  animation: flash-pop .35s ease;
 }
 @keyframes flash-pop { 0%{transform:scale(.5)} 60%{transform:scale(1.15)} 100%{transform:scale(1)} }
-.result-flash-inner.correct-txt { color:var(--green); }
-.result-flash-inner.wrong-txt   { color:var(--red); }
+.result-flash-inner.correct-txt { color: var(--green); }
+.result-flash-inner.wrong-txt   { color: var(--red); }
 
-/* ════════════════════════════════════════
+/* ════════════════════════════
    END SCREEN
-   ════════════════════════════════════════ */
+   ════════════════════════════ */
 #end-screen {
-  display:none; flex-direction:column; align-items:center; gap:14px;
-  position:relative; z-index:1;
+  display: none; flex-direction: column; align-items: center; gap: 12px;
+  position: relative; z-index: 1;
 }
 .end-card {
-  background:var(--white); border:4px solid var(--black);
-  border-radius:6px; box-shadow:var(--shadow-lg);
-  padding:28px 26px; text-align:center; width:min(380px,94vw);
+  background: var(--white); border: 4px solid var(--black);
+  border-radius: 6px; box-shadow: var(--shadow-lg);
+  padding: 24px 22px; text-align: center; width: min(380px,94vw);
 }
 .end-star {
-  font-size:3.5rem; color:var(--yellow);
-   display:block;
-  animation:star-bounce .6s ease infinite alternate; margin-bottom:6px;
+  font-size: 3.2rem; color: var(--yellow); display: block;
+  animation: star-bounce .6s ease infinite alternate; margin-bottom: 4px;
 }
 @keyframes star-bounce { from{transform:scale(1) rotate(-3deg)} to{transform:scale(1.1) rotate(3deg)} }
 
-.end-card h2 { font-family:'Chewy', sans-serif; font-size:2.2rem; color:var(--red); margin-bottom:10px; }
+.end-card h2 { font-family: 'Chewy', sans-serif; font-size: 2rem; color: var(--red); margin-bottom: 8px; }
 .final-score {
-  font-family:'Chewy', sans-serif; font-size:5rem; color:var(--blue);
-   line-height:1; display:block; margin-bottom:4px;
+  font-family: 'Chewy', sans-serif; font-size: 5rem; color: var(--blue);
+  line-height: 1; display: block; margin-bottom: 2px;
 }
-.final-label { font-family:'Chewy', sans-serif; font-size:1rem; letter-spacing:1px; color:#555; display:block; margin-bottom:12px; }
-.new-best {
-  font-family:'Chewy', sans-serif; font-size:1.1rem;
-  color:var(--orange);
-  margin-bottom:10px; display:none;
-}
-.end-breakdown { font-family:'Nunito', sans-serif; font-size:.88rem; color:#444; line-height:1.7; margin-bottom:14px; }
+.final-label { font-family: 'Chewy', sans-serif; font-size: .95rem; letter-spacing: 1px; color: #555; display: block; margin-bottom: 10px; }
+.new-best { font-family: 'Chewy', sans-serif; font-size: 1.1rem; color: var(--orange); margin-bottom: 8px; display: none; }
+.end-breakdown { font-size: .88rem; color: #444; line-height: 1.8; margin-bottom: 12px; }
 
 /* ── Buttons ── */
-.btn-row { display:flex; gap:10px; justify-content:center; flex-wrap:wrap; }
+.btn-row { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
 .btn {
-  font-family:'Chewy', sans-serif; font-size:1.05rem; letter-spacing:.5px;
-  padding:11px 26px; border:3px solid var(--black); border-radius:4px;
-  cursor:pointer; box-shadow:var(--shadow); transition:transform .1s, box-shadow .1s;
+  font-family: 'Chewy', sans-serif; font-size: 1.05rem; letter-spacing: .5px;
+  padding: 11px 26px; border: 3px solid var(--black); border-radius: 4px;
+  cursor: pointer; box-shadow: var(--shadow); transition: transform .1s, box-shadow .1s;
 }
-.btn:hover  { transform:translate(-1px,-1px); box-shadow:5px 5px 0 var(--black); }
-.btn:active { transform:translate(3px,3px); box-shadow:1px 1px 0 var(--black); }
-.btn-primary { background:var(--red); color:var(--white); }
-.btn-secondary { background:var(--blue); color:var(--white); }
-.btn-outline  { background:var(--white); color:var(--black); }
+.btn:hover  { transform: translate(-1px,-1px); box-shadow: 5px 5px 0 var(--black); }
+.btn:active { transform: translate(3px,3px); box-shadow: 1px 1px 0 var(--black); }
+.btn-primary   { background: var(--red);   color: var(--white); }
+.btn-secondary { background: var(--blue);  color: var(--white); }
+.btn-outline   { background: var(--white); color: var(--black); }
+
+/* ── Footer ── */
+.site-footer {
+  margin-top: auto; padding: 18px 0 14px;
+  font-family: 'Nunito', sans-serif; font-weight: 700;
+  font-size: .72rem; color: rgba(0,0,0,.45);
+  text-align: center; letter-spacing: .5px;
+  position: relative; z-index: 1;
+}
 
 /* ── Confetti ── */
-.confetti-container { position:fixed; inset:0; pointer-events:none; z-index:200; overflow:hidden; }
-.cp { position:absolute; opacity:0; animation:cfall 1.6s ease-out forwards; }
+.confetti-container { position: fixed; inset: 0; pointer-events: none; z-index: 200; overflow: hidden; }
+.cp { position: absolute; opacity: 0; animation: cfall 1.6s ease-out forwards; }
 @keyframes cfall { 0%{transform:translateY(-20px) rotate(0) scale(1);opacity:1} 100%{transform:translateY(110vh) rotate(720deg) scale(.6);opacity:0} }
 
-.hidden { display:none !important; }
+.hidden { display: none !important; }
 </style>
 </head>
 <body>
@@ -338,17 +443,17 @@ body {
 <span class="bg-note" style="bottom:6%;right:5%;font-size:2rem">&#9835;</span>
 
 <header class="site-header">
-  <div class="site-title">Flute Flash Cards</div>
-  <div class="site-subtitle">G &middot; A &middot; B</div>
+  <div class="site-title">Recorder Rush</div>
+  <div class="site-subtitle">Sight Reading Practice</div>
 </header>
 
 <div id="https-warning" class="hidden">
   <strong>Microphone needs HTTPS to work on mobile</strong>
-  Android Chrome blocks mic access for local files. Host on GitHub Pages (free, 2 min):
+  Android Chrome blocks mic access for local files. Host on GitHub Pages:
   <ol>
-    <li>Upload this file as <code>index.html</code> in a repo called <code>flute</code></li>
+    <li>Upload as <code>index.html</code> in a repo called <code>recorder-rush</code></li>
     <li>Settings &rarr; Pages &rarr; Source = main branch</li>
-    <li>Open <code>thearjunsingh.github.io/flute</code> on your phone</li>
+    <li>Open <code>thearjunsingh.github.io/recorder-rush</code></li>
   </ol>
 </div>
 
@@ -364,12 +469,21 @@ body {
 <div id="start-screen">
   <div class="start-card">
     <h2>Ready to Play?</h2>
-    <p>A note will appear. Play it on your flute.<br>The mic listens automatically.</p>
-    <span class="big-num">30</span>
+    <p>A note appears. Play it on your recorder.<br>The mic listens automatically.</p>
+    <span class="big-num">60</span>
     <span class="sub">SECONDS ON THE CLOCK</span>
     <br><br>
     <p>How many notes can you nail?</p>
   </div>
+
+  <!-- Note Selector -->
+  <div class="note-selector-card">
+    <h3>Choose Your Notes</h3>
+    <div class="selector-sub">More notes = more points per correct answer</div>
+    <div class="note-toggle-row" id="note-toggle-row"></div>
+    <div class="points-preview" id="points-preview"></div>
+  </div>
+
   <div class="best-score-display" id="best-display">Best score: 0</div>
   <div class="btn-row">
     <button class="btn btn-primary" onclick="startGame()">Start Game</button>
@@ -378,40 +492,45 @@ body {
 
 <!-- ══ GAME SCREEN ══ -->
 <div id="game-screen">
-
-  <!-- HUD -->
   <div class="hud">
     <div class="timer-wrap">
       <div class="timer-label">Time</div>
-      <div class="timer-val" id="timer-val">30</div>
+      <div class="timer-val" id="timer-val">60</div>
     </div>
-    <div class="timer-bar-wrap">
+    <div class="timer-bar-wrap" style="flex:1;margin-bottom:0">
       <div class="timer-bar" id="timer-bar"></div>
     </div>
     <div class="score-wrap">
       <div class="score-label">Score</div>
       <div class="score-val" id="score-val">0</div>
     </div>
+    <div class="pts-badge">
+      <div class="pts-label">+pts</div>
+      <div class="pts-val" id="pts-val">1</div>
+    </div>
   </div>
 
-  <!-- Flash card -->
   <div class="card-wrap">
     <div class="card" id="card">
       <div class="note-name" id="note-name">G</div>
       <div class="staff-wrap" id="staff-wrap"></div>
       <div id="finger-area">
-        <div class="finger-chart" id="finger-chart"></div>
+        <div class="recorder-diagram" id="recorder-diagram">
+          <div class="thumb-dot" id="thumb-dot"></div>
+          <div class="hole-column" id="hole-column"></div>
+        </div>
         <div class="hint-text" id="hint-text"></div>
+      </div>
+      <div class="hold-bar-wrap" id="hold-bar-wrap">
+        <div class="hold-bar" id="hold-bar"></div>
       </div>
     </div>
   </div>
 
-  <!-- Mic status -->
   <div class="mic-status">
     <div class="mic-dot" id="mic-dot"></div>
     <div class="mic-text" id="mic-text">Listening...</div>
   </div>
-
 </div>
 
 <!-- ══ END SCREEN ══ -->
@@ -420,7 +539,7 @@ body {
     <span class="end-star">&#9733;</span>
     <h2>Time is Up!</h2>
     <span class="final-score" id="final-score">0</span>
-    <span class="final-label">NOTES IN 30 SECONDS</span>
+    <span class="final-label" id="final-label">POINTS IN 60 SECONDS</span>
     <div class="new-best" id="new-best">NEW BEST SCORE!</div>
     <div class="end-breakdown" id="end-breakdown"></div>
   </div>
@@ -430,141 +549,237 @@ body {
   </div>
 </div>
 
-<!-- Result flash overlay -->
+<!-- Result flash -->
 <div class="result-flash" id="result-flash">
   <div class="result-flash-inner" id="result-flash-inner"></div>
 </div>
 
 <div class="confetti-container" id="confetti"></div>
 
+<footer class="site-footer">Developed by Claude and Mr. Arjun</footer>
+
 <script>
-/* ════════════════════════════════════════
+/* ════════════════════════════════
    HTTPS CHECK
-   ════════════════════════════════════════ */
+   ════════════════════════════════ */
 if (location.protocol === 'file:') {
   document.getElementById('https-warning').classList.remove('hidden');
 }
 
-/* ════════════════════════════════════════
-   NOTE DATA
-   Staff slots from bottom staff line (E4=0):
-     1   = G4 (2nd line from bottom)
-     1.5 = A4 (2nd space)
-     2   = B4 (middle line)
+/* ════════════════════════════════
+   ALL AVAILABLE NOTES
+   Fingerings match reference sheet music (soprano recorder):
+   thumb = back thumb hole
+   lh[0..2] = LH index, middle, ring (top to bottom in diagram)
+   rh[0..3] = RH index, middle, ring, pinky (top to bottom)
 
-   Frequencies with generous tolerance for
-   a beginner flutist (slightly sharp/flat)
-   ════════════════════════════════════════ */
-const NOTES = [
-  { name:'G', freq:392.0, tol:22, slot:1,   holes:[1,1,1,1,1,1,0,0], hint:'Cover all 6 main holes' },
-  { name:'A', freq:440.0, tol:22, slot:1.5, holes:[1,1,1,1,1,0,0,0], hint:'Lift right index finger' },
-  { name:'B', freq:493.88,tol:24, slot:2,   holes:[1,1,1,1,0,0,0,0], hint:'Lift right index + middle' }
+   G4: thumb●  LH ●●●  RH ○○○○
+   A4: thumb●  LH ●●○  RH ○○○○
+   B4: thumb●  LH ●○○  RH ○○○○
+   C5: thumb●  LH ●○○  RH ●○○○
+   D5: thumb○  LH ●○○  RH ○○○○
+   ════════════════════════════════ */
+
+const ALL_NOTES = [
+  {
+    name:'G', freq:392.0, tol:22, slot:1,
+    thumb:1, lh:[1,1,1], rh:[0,0,0,0],
+    hint:'Thumb + all 3 left fingers'
+  },
+  {
+    name:'A', freq:440.0, tol:22, slot:1.5,
+    thumb:1, lh:[1,1,0], rh:[0,0,0,0],
+    hint:'Thumb + LH index + middle'
+  },
+  {
+    name:'B', freq:493.88, tol:24, slot:2,
+    thumb:1, lh:[1,0,0], rh:[0,0,0,0],
+    hint:'Thumb + LH index only'
+  },
+  {
+    name:'C', freq:523.25, tol:24, slot:2.5,
+    thumb:1, lh:[1,0,0], rh:[1,0,0,0],
+    hint:'Thumb + LH index + RH index'
+  },
+  {
+    name:'D', freq:587.33, tol:26, slot:3,
+    thumb:0, lh:[1,0,0], rh:[0,0,0,0],
+    hint:'LH index only (no thumb)'
+  }
 ];
+
+/* Staff slot reference (from bottom line E4 = slot 0):
+   G4=1, A4=1.5, B4=2, C5=2.5, D5=3 */
 
 const LEVEL_DESC = [
-  'Staff + Note Name + Fingering — 1 point per note',
-  'Staff + Note Name — 2 points per note',
-  'Staff only — 3 points per note'
+  'Staff + Note Name + Fingering',
+  'Staff + Note Name only',
+  'Staff only'
 ];
 
-const POINTS = [1, 2, 3]; // points awarded per correct note by level
+const GAME_DURATION = 60;
+const HOLD_FRAMES   = 120; // ~2 seconds at 60fps
 
-const GAME_DURATION = 30; // seconds
-const HOLD_FRAMES   = 8;  // frames pitch must be held before scoring (~0.13s at 60fps)
-
-/* ════════════════════════════════════════
-   GAME STATE
-   ════════════════════════════════════════ */
-let level       = 0;
-let score       = 0;
-let bestScore   = parseInt(localStorage.getItem('fluteCardsBest') || '0');
-let noteCounts  = { G:0, A:0, B:0 }; // per-note score tracking
-let timeLeft    = GAME_DURATION;
+/* ════════════════════════════════
+   STATE
+   ════════════════════════════════ */
+let level        = 0;
+let score        = 0;
+let bestScore    = parseInt(localStorage.getItem('recorderRushBest') || '0');
+let noteCounts   = {};
+let timeLeft     = GAME_DURATION;
 let timerInterval = null;
-let correctHeld = 0;
-let currentNote = null;
-let gameRunning = false;
+let correctHeld  = 0;
+let currentNote  = null;
+let gameRunning  = false;
+let activeNoteNames = ['G','A','B']; // selected by user
 
-/* Audio */
-let audioCtx  = null;
-let analyser  = null;
+let audioCtx   = null;
+let analyser   = null;
 let sourceNode = null;
 let micStream  = null;
 let rafId      = null;
 
 function shuffle(a) {
-  const arr = [...a];
-  for (let i=arr.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[arr[i],arr[j]]=[arr[j],arr[i]];}
+  const arr=[...a];
+  for(let i=arr.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[arr[i],arr[j]]=[arr[j],arr[i]];}
   return arr;
 }
 
-/* ════════════════════════════════════════
-   STAFF SVG — quarter note = filled head
-   ════════════════════════════════════════ */
+/* ════════════════════════════════
+   POINTS CALCULATION
+   Base: 1 point per note
+   Difficulty multiplier: Beginner=1, Medium=2, Hard=3
+   Note pool bonus: each note beyond 3 adds +1 per note
+   ════════════════════════════════ */
+function calcPoints() {
+  const diffBonus = level + 1; // 1, 2, 3
+  const noteBonus = Math.max(0, activeNoteNames.length - 3); // 0 for 3 notes, 1 for 4, 2 for 5
+  return diffBonus + noteBonus;
+}
+
+function updatePointsPreview() {
+  const pts = calcPoints();
+  const activeNotes = ALL_NOTES.filter(n => activeNoteNames.includes(n.name));
+  document.getElementById('points-preview').textContent =
+    `${activeNotes.length} note${activeNotes.length!==1?'s':''} selected — ${pts} point${pts!==1?'s':''} per correct answer`;
+}
+
+/* ════════════════════════════════
+   NOTE TOGGLE UI
+   ════════════════════════════════ */
+function buildNoteToggles() {
+  const row = document.getElementById('note-toggle-row');
+  row.innerHTML = '';
+  ALL_NOTES.forEach(n => {
+    const btn = document.createElement('button');
+    btn.className = 'note-toggle' + (activeNoteNames.includes(n.name) ? ' selected' : '');
+    btn.textContent = n.name;
+    btn.dataset.note = n.name;
+    btn.onclick = () => toggleNote(n.name, btn);
+    row.appendChild(btn);
+  });
+  updatePointsPreview();
+}
+
+function toggleNote(name, btn) {
+  if (activeNoteNames.includes(name)) {
+    // Don't allow fewer than 2 notes
+    if (activeNoteNames.length <= 2) {
+      btn.classList.add('disabled');
+      setTimeout(() => btn.classList.remove('disabled'), 600);
+      return;
+    }
+    activeNoteNames = activeNoteNames.filter(n => n !== name);
+    btn.classList.remove('selected');
+  } else {
+    activeNoteNames.push(name);
+    btn.classList.add('selected');
+  }
+  updatePointsPreview();
+}
+
+/* ════════════════════════════════
+   STAFF SVG — quarter note
+   ════════════════════════════════ */
 function makeStaffSVG(note) {
   const W=320, sp=15, sb=108;
   const sy = slot => sb - slot*sp;
   const lineX1=68, lineX2=W-10;
 
-  const lines = [0,1,2,3,4].map(i =>
+  const lines=[0,1,2,3,4].map(i=>
     `<line x1="${lineX1}" y1="${sy(i)}" x2="${lineX2}" y2="${sy(i)}"
       stroke="#1A1A1A" stroke-width="2" stroke-linecap="round"/>`
   ).join('');
 
+  // Ledger line for D5 (slot 3 = one above top staff line)
+  const ledger = note.slot >= 4.5 ? `<line x1="${220-18}" y1="${sy(note.slot)}" x2="${220+18}" y2="${sy(note.slot)}" stroke="#1A1A1A" stroke-width="2" stroke-linecap="round"/>` : '';
+
   const ny=sy(note.slot), nx=220, rx=11, ry=7;
-  const stemUp   = note.slot <= 2;
-  const stemXos  = stemUp ? rx-1 : -(rx-1);
-  const stemY1   = ny + (stemUp ? -ry+1 : ry-1);
-  const stemY2   = stemY1 + (stemUp ? -40 : 40);
-  const vbH      = sb+22;
+  const stemUp  = note.slot <= 2.5;
+  const stemXos = stemUp ? rx-1 : -(rx-1);
+  const stemY1  = ny + (stemUp ? -ry+1 : ry-1);
+  const stemY2  = stemY1 + (stemUp ? -40 : 40);
+  const vbH     = sb+22;
 
   return `<svg viewBox="0 0 ${W} ${vbH}" xmlns="http://www.w3.org/2000/svg">
-    ${lines}
-    <!-- Treble clef -->
-    <text x="6" y="${sb+8}"
-      font-family="'Times New Roman',Times,serif"
-      font-size="88" fill="#1A1A1A">&#119070;</text>
-    <!-- Quarter note head: FILLED ellipse -->
+    ${lines}${ledger}
+    <text x="6" y="${sb+8}" font-family="'Times New Roman',Times,serif" font-size="88" fill="#1A1A1A">&#119070;</text>
     <ellipse cx="${nx}" cy="${ny}" rx="${rx}" ry="${ry}"
       stroke="#1A1A1A" stroke-width="2.2" fill="#1A1A1A"
       transform="rotate(-16,${nx},${ny})"/>
-    <!-- Stem -->
     <line x1="${nx+stemXos}" y1="${stemY1}" x2="${nx+stemXos}" y2="${stemY2}"
       stroke="#1A1A1A" stroke-width="2.3" stroke-linecap="round"/>
   </svg>`;
 }
 
-/* ════════════════════════════════════════
+/* ════════════════════════════════
    RENDER CARD
-   ════════════════════════════════════════ */
+   ════════════════════════════════ */
 function renderCard() {
-  document.getElementById('note-name').textContent  = currentNote.name;
-  document.getElementById('note-name').className    = 'note-name';
-  document.getElementById('staff-wrap').innerHTML   = makeStaffSVG(currentNote);
-  document.getElementById('card').className         = 'card';
-
   const nameEl = document.getElementById('note-name');
+  nameEl.textContent = currentNote.name;
+  nameEl.className   = 'note-name';
   nameEl.classList.toggle('hidden', level === 2);
+
+  document.getElementById('staff-wrap').innerHTML = makeStaffSVG(currentNote);
+  document.getElementById('card').className = 'card';
 
   const fa = document.getElementById('finger-area');
   fa.classList.toggle('hidden', level !== 0);
+
   if (level === 0) {
-    const fc = document.getElementById('finger-chart');
-    fc.innerHTML = '';
-    currentNote.holes.forEach((f,i) => {
-      if (i===3){const g=document.createElement('div');g.className='gap-div';fc.appendChild(g);}
-      const h=document.createElement('div');
-      h.className='hole'+(f?' filled':'');
-      fc.appendChild(h);
+    // Thumb dot
+    const td = document.getElementById('thumb-dot');
+    td.className = 'thumb-dot' + (currentNote.thumb ? ' filled' : '');
+
+    // Vertical hole column: LH1 LH2 LH3 [gap] RH1 RH2 RH3 RH4 — top to bottom
+    const col = document.getElementById('hole-column');
+    col.innerHTML = '';
+    currentNote.lh.forEach(f => {
+      const h = document.createElement('div');
+      h.className = 'hole' + (f ? ' filled' : '');
+      col.appendChild(h);
+    });
+    const gap = document.createElement('div'); gap.className = 'hole-gap'; col.appendChild(gap);
+    currentNote.rh.forEach(f => {
+      const h = document.createElement('div');
+      h.className = 'hole' + (f ? ' filled' : '');
+      col.appendChild(h);
     });
     document.getElementById('hint-text').textContent = currentNote.hint;
   }
+
+  // Reset hold bar
+  document.getElementById('hold-bar').style.width = '0%';
+  document.getElementById('pts-val').textContent = calcPoints();
   correctHeld = 0;
 }
 
 function pickNewNote() {
-  // Pick a different note from the current one (random but not same twice in a row)
-  const pool = NOTES.filter(n => !currentNote || n.name !== currentNote.name);
+  const pool = ALL_NOTES.filter(n =>
+    activeNoteNames.includes(n.name) && (!currentNote || n.name !== currentNote.name)
+  );
   currentNote = pool[Math.floor(Math.random()*pool.length)];
   renderCard();
 }
@@ -573,12 +788,16 @@ function setLevel(l) {
   level = l;
   document.querySelectorAll('.diff-tab').forEach(t => t.classList.toggle('active', +t.dataset.level===l));
   document.getElementById('level-desc').textContent = LEVEL_DESC[l];
-  if (currentNote) renderCard(); // re-render if mid-game
+  if (currentNote) {
+    renderCard();
+    document.getElementById('pts-val').textContent = calcPoints();
+  }
+  updatePointsPreview();
 }
 
-/* ════════════════════════════════════════
-   PITCH DETECTION — autocorrelation
-   ════════════════════════════════════════ */
+/* ════════════════════════════════
+   PITCH DETECTION
+   ════════════════════════════════ */
 function autoCorrelate(buf, sr) {
   let rms=0;
   for(let i=0;i<buf.length;i++) rms+=buf[i]*buf[i];
@@ -588,16 +807,13 @@ function autoCorrelate(buf, sr) {
   let r1=0, r2=buf.length-1;
   for(let i=0;i<buf.length/2;i++){if(Math.abs(buf[i])>0.2){r1=i;break;}}
   for(let i=1;i<buf.length/2;i++){if(Math.abs(buf[buf.length-i])>0.2){r2=buf.length-i;break;}}
-
   const b=buf.slice(r1,r2), n=b.length;
   const c=new Float32Array(n);
   for(let i=0;i<n;i++) for(let j=0;j<n-i;j++) c[i]+=b[j]*b[j+i];
-
   let d=0; while(d<n-1&&c[d]>c[d+1])d++;
   let mv=-1,mp=-1;
   for(let i=d;i<n;i++){if(c[i]>mv){mv=c[i];mp=i;}}
   if(mp<1||mp>=n-1) return -1;
-
   const T=mp-(c[mp+1]-c[mp-1])/(2*(2*c[mp]-c[mp-1]-c[mp+1]));
   return sr/T;
 }
@@ -615,8 +831,9 @@ function analyse() {
   analyser.getFloatTimeDomainData(buf);
 
   const f=autoCorrelate(buf, audioCtx.sampleRate);
-  const dotEl =document.getElementById('mic-dot');
-  const txtEl =document.getElementById('mic-text');
+  const dotEl=document.getElementById('mic-dot');
+  const txtEl=document.getElementById('mic-text');
+  const holdBar=document.getElementById('hold-bar');
 
   if(f>0) {
     const name=freqToName(f);
@@ -626,21 +843,24 @@ function analyse() {
     dotEl.className='mic-dot'+(isMatch?' correct':' heard');
     txtEl.innerHTML=`Hearing: <span class="detected ${isMatch?'correct':'wrong'}">${name||'?'}</span>`;
 
-    if(isMatch){
+    if(isMatch) {
       correctHeld++;
-      if(correctHeld>=HOLD_FRAMES){
+      holdBar.style.width = Math.min(100, (correctHeld/HOLD_FRAMES)*100)+'%';
+      if(correctHeld>=HOLD_FRAMES) {
         correctHeld=0;
+        holdBar.style.width='0%';
         onCorrectNote();
       }
     } else {
       correctHeld=0;
+      holdBar.style.width='0%';
     }
   } else {
     correctHeld=0;
+    holdBar.style.width='0%';
     dotEl.className='mic-dot listening';
     txtEl.textContent='Listening...';
   }
-
   rafId=requestAnimationFrame(analyse);
 }
 
@@ -661,7 +881,7 @@ async function startMic() {
     rafId=requestAnimationFrame(analyse);
   } catch(e) {
     console.error(e);
-    document.getElementById('mic-dot').className='mic-dot blocked';
+    document.getElementById('mic-dot').className='mic-dot';
     document.getElementById('mic-text').textContent='Mic blocked — check browser permissions';
   }
 }
@@ -673,15 +893,14 @@ function stopMic() {
   try{if(micStream){micStream.getTracks().forEach(t=>t.stop());micStream=null;}}catch(e){}
 }
 
-/* ════════════════════════════════════════
+/* ════════════════════════════════
    GAME FLOW
-   ════════════════════════════════════════ */
+   ════════════════════════════════ */
 function startGame() {
-  score=0; timeLeft=GAME_DURATION;
-  noteCounts={G:0,A:0,B:0};
-  correctHeld=0; gameRunning=true; currentNote=null;
+  score=0; timeLeft=GAME_DURATION; correctHeld=0; gameRunning=true; currentNote=null;
+  noteCounts={};
+  activeNoteNames.forEach(n => noteCounts[n]=0);
 
-  // Show game screen
   document.getElementById('start-screen').style.display='none';
   document.getElementById('end-screen').style.display='none';
   document.getElementById('game-screen').style.display='flex';
@@ -690,63 +909,47 @@ function startGame() {
   pickNewNote();
   startMic();
 
-  // Countdown
   timerInterval=setInterval(()=>{
     timeLeft--;
     updateHUD();
-    if(timeLeft<=0){
-      clearInterval(timerInterval);
-      endGame();
-    }
+    if(timeLeft<=0){ clearInterval(timerInterval); endGame(); }
   },1000);
 }
 
 function updateHUD() {
   const tv=document.getElementById('timer-val');
   tv.textContent=timeLeft;
-  tv.className='timer-val'+(timeLeft<=8?' urgent':'');
-
+  tv.className='timer-val'+(timeLeft<=10?' urgent':'');
   document.getElementById('score-val').textContent=score;
-
   const pct=timeLeft/GAME_DURATION*100;
   const bar=document.getElementById('timer-bar');
   bar.style.width=pct+'%';
-  bar.className='timer-bar'+(pct<=25?' low':'');
+  bar.className='timer-bar'+(pct<=20?' low':'');
 }
 
 function onCorrectNote() {
-  const pts = POINTS[level];
-  score += pts;
-  noteCounts[currentNote.name]++;
+  const pts=calcPoints();
+  score+=pts;
+  if(noteCounts[currentNote.name]!==undefined) noteCounts[currentNote.name]++;
 
-  // Visual flash on card
   document.getElementById('card').className='card flash-correct';
-
-  // Score bump animation
   const sv=document.getElementById('score-val');
   sv.textContent=score;
   sv.className='score-val bump';
   setTimeout(()=>sv.className='score-val',260);
 
-  // Brief result flash
-  showFlash(true);
-
-  // Small confetti burst
+  showFlash('+'+pts);
   miniBurst();
-
-  // Next note after brief delay
-  setTimeout(()=>{
-    if(gameRunning) pickNewNote();
-  },350);
+  setTimeout(()=>{ if(gameRunning) pickNewNote(); },350);
 }
 
-function showFlash(correct) {
+function showFlash(txt) {
   const el=document.getElementById('result-flash');
   const inner=document.getElementById('result-flash-inner');
-  inner.textContent=correct?'+'+POINTS[level]:'';
-  inner.className='result-flash-inner '+(correct?'correct-txt':'wrong-txt');
+  inner.textContent=txt;
+  inner.className='result-flash-inner correct-txt';
   el.classList.add('show');
-  setTimeout(()=>el.classList.remove('show'),400);
+  setTimeout(()=>el.classList.remove('show'),450);
 }
 
 function endGame() {
@@ -754,24 +957,16 @@ function endGame() {
   stopMic();
 
   document.getElementById('game-screen').style.display='none';
-  const endEl=document.getElementById('end-screen');
-  endEl.style.display='flex';
-
+  document.getElementById('end-screen').style.display='flex';
   document.getElementById('final-score').textContent=score;
+  document.getElementById('final-label').textContent='POINTS IN 60 SECONDS';
 
-  // Best score
   const isNewBest=score>bestScore;
-  if(isNewBest){
-    bestScore=score;
-    localStorage.setItem('fluteCardsBest',bestScore);
-    document.getElementById('best-display').textContent='Best score: '+bestScore;
-  }
+  if(isNewBest){ bestScore=score; localStorage.setItem('recorderRushBest',bestScore); document.getElementById('best-display').textContent='Best score: '+bestScore; }
   document.getElementById('new-best').style.display=isNewBest?'block':'none';
 
-  // Breakdown
-  const total=Math.max(score,1);
-  document.getElementById('end-breakdown').innerHTML=
-    `G: ${noteCounts.G} &nbsp;&middot;&nbsp; A: ${noteCounts.A} &nbsp;&middot;&nbsp; B: ${noteCounts.B}`;
+  const breakdown=Object.entries(noteCounts).map(([n,c])=>`${n}: ${c}`).join('  &middot;  ');
+  document.getElementById('end-breakdown').innerHTML=breakdown;
 
   if(score>0){burst();setTimeout(burst,600);}
   if(isNewBest) setTimeout(burst,1200);
@@ -783,14 +978,13 @@ function goToStart() {
   document.getElementById('game-screen').style.display='none';
   document.getElementById('end-screen').style.display='none';
   document.getElementById('start-screen').style.display='flex';
-  document.getElementById('best-display').textContent='Best score: '+bestScore;
+  buildNoteToggles();
 }
 
-/* ════════════════════════════════════════
+/* ════════════════════════════════
    CONFETTI
-   ════════════════════════════════════════ */
+   ════════════════════════════════ */
 const COLS=['#E8232A','#F5C800','#1A5FB4','#2E8B3C','#F07D00','#FFFFFF'];
-
 function burst() {
   const c=document.getElementById('confetti');
   for(let i=0;i<50;i++){
@@ -806,29 +1000,28 @@ function burst() {
   }
   setTimeout(()=>c.innerHTML='',2800);
 }
-
 function miniBurst() {
   const c=document.getElementById('confetti');
-  for(let i=0;i<12;i++){
+  for(let i=0;i<14;i++){
     const p=document.createElement('div');p.className='cp';
     const sz=6+Math.random()*6;
     p.style.cssText=`left:${30+Math.random()*40}%;top:${10+Math.random()*20}%;
       width:${sz}px;height:${sz}px;background:${COLS[i%COLS.length]};
-      border:1.5px solid #1A1A1A;
-      animation-delay:0s;animation-duration:${(.7+Math.random()*.5).toFixed(2)}s;
+      border:1.5px solid #1A1A1A;animation-delay:0s;
+      animation-duration:${(.7+Math.random()*.5).toFixed(2)}s;
       border-radius:${Math.random()>.4?'2px':'50%'};`;
     c.appendChild(p);
   }
 }
 
-/* ════════════════════════════════════════
+/* ════════════════════════════════
    INIT
-   ════════════════════════════════════════ */
+   ════════════════════════════════ */
 document.getElementById('best-display').textContent='Best score: '+bestScore;
-setLevel(0);
-// Start screen is default-visible via CSS (flex), game/end hidden
 document.getElementById('game-screen').style.display='none';
 document.getElementById('end-screen').style.display='none';
+buildNoteToggles();
+setLevel(0);
 </script>
 </body>
 </html>
